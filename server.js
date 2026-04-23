@@ -6,18 +6,22 @@ const multer = require('multer');
 const path = require('path');
 
 const app = express();
-const PORT = 3000;
+// Utilise le port fourni par l'hébergeur ou 3000 par défaut
+const PORT = process.env.PORT || 3000;
 
-// --- 1. CONFIGURATION TURSO (SQLITE EN LIGNE) ---
-// On remplace le stockage local par la connexion distante
+// --- 1. CONFIGURATION TURSO ---
 const sequelize = new Sequelize({
     dialect: 'sqlite',
-    dialectModule: require('@libsql/sqlite3'), // Utilise le driver Turso
-    storage: 'VOTRE_URL_TURSO?authToken=VOTRE_TOKEN_TURSO', // Format Turso
+    dialectModule: require('@libsql/sqlite3'),
+    // CONSEIL : Utilise des variables d'environnement pour ne pas exposer ton token sur GitHub
+    storage: process.env.TURSO_DATABASE_URL || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY5NjI4NjIsImlkIjoiMDE5ZGJiMzctYWUwMS03ZGNmLThiNWYtNTU4MjI0MTQ0NGZhIiwicmlkIjoiNGYxNDkxMjgtNmMwZi00NjNiLTk2N2MtMTYxZTAzOGY2ZDkzIn0.szDdkj7sBtEr7z_7-OgVOMv-GhPCMq-ZkGA8JaN3lAUzDeNnkRkDvVhKpnL71I4lFddc0V3GciS56uy-0jGLCA',
+    dialectOptions: {
+        authToken: process.env.TURSO_AUTH_TOKEN || 'eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzY5NjI4NjIsImlkIjoiMDE5ZGJiMzctYWUwMS03ZGNmLThiNWYtNTU4MjI0MTQ0NGZhIiwicmlkIjoiNGYxNDkxMjgtNmMwZi00NjNiLTk2N2MtMTYxZTAzOGY2ZDkzIn0.szDdkj7sBtEr7z_7-OgVOMv-GhPCMq-ZkGA8JaN3lAUzDeNnkRkDvVhKpnL71I4lFddc0V3GciS56uy-0jGLCA',
+    },
     logging: false
 });
 
-// --- 2. MODÈLES DE DONNÉES (Inchangés) ---
+// --- 2. MODÈLES DE DONNÉES ---
 const User = sequelize.define('User', {
     name: { type: DataTypes.STRING, allowNull: false },
     email: { type: DataTypes.STRING, unique: true, allowNull: false },
@@ -44,10 +48,7 @@ const Arrivage = sequelize.define('Arrivage', {
     items: { type: DataTypes.TEXT } 
 });
 
-// Synchronisation avec Turso
-sequelize.sync()
-    .then(() => console.log("✅ Connecté à la base de données Turso en ligne."))
-    .catch(err => console.error("❌ Erreur de connexion Turso:", err));
+sequelize.sync().then(() => console.log("✅ Connecté à la base Turso Cloud."));
 
 // --- 3. CONFIGURATION SERVEUR ---
 const storage = multer.diskStorage({
@@ -61,10 +62,13 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
 
 app.use(session({
-    secret: 'terre-de-bray-sql-secret',
+    secret: process.env.SESSION_SECRET || 'terre-de-bray-secret',
     resave: false,
     saveUninitialized: false,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    cookie: { 
+        maxAge: 24 * 60 * 60 * 1000,
+        secure: false // Mettre à true si tu utilises HTTPS (recommandé en prod)
+    }
 }));
 
 const isAdmin = (req, res, next) => {
@@ -72,7 +76,7 @@ const isAdmin = (req, res, next) => {
     res.status(403).send("Accès réservé à l'admin.");
 };
 
-// --- 4. ROUTES AUTHENTIFICATION (Inchangées) ---
+// --- 4. ROUTES AUTHENTIFICATION ---
 app.post('/api/register', async (req, res) => {
     try {
         const { email, password, name } = req.body;
@@ -104,7 +108,7 @@ app.get('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
-// --- 5. ROUTES BOUTIQUE (Inchangées) ---
+// --- 5. ROUTES BOUTIQUE ---
 app.get('/api/products', async (req, res) => {
     res.json(await Product.findAll());
 });
@@ -123,31 +127,25 @@ app.post('/api/order', async (req, res) => {
     res.json({ ok: true });
 });
 
-// --- 6. ROUTES ADMIN (Inchangées) ---
+// --- 6. ROUTES ADMIN ---
 app.get('/api/admin/orders', isAdmin, async (req, res) => {
-    try {
-        const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
-        const products = await Product.findAll();
-        const productInfo = {};
-        products.forEach(p => {
-            productInfo[p.id] = { name: p.name, unit: p.unit };
-        });
+    const orders = await Order.findAll({ order: [['createdAt', 'DESC']] });
+    const products = await Product.findAll();
+    const productInfo = {};
+    products.forEach(p => productInfo[p.id] = { name: p.name, unit: p.unit });
 
-        const formatted = orders.map(o => {
-            const orderJson = o.toJSON();
-            const rawCart = JSON.parse(orderJson.cart);
-            const cartDetails = [];
-            for (let id in rawCart) {
-                const info = productInfo[id] || { name: `Inconnu (ID:${id})`, unit: '' };
-                cartDetails.push({ name: info.name, qty: rawCart[id], unit: info.unit });
-            }
-            orderJson.cartDetails = cartDetails;
-            return orderJson;
-        });
-        res.json(formatted);
-    } catch (e) {
-        res.status(500).json({ message: "Erreur serveur" });
-    }
+    const formatted = orders.map(o => {
+        const item = o.toJSON();
+        const rawCart = JSON.parse(item.cart);
+        const cartDetails = [];
+        for (let id in rawCart) {
+            const info = productInfo[id] || { name: `Inconnu (ID:${id})`, unit: '' };
+            cartDetails.push({ name: info.name, qty: rawCart[id], unit: info.unit });
+        }
+        item.cartDetails = cartDetails;
+        return item;
+    });
+    res.json(formatted);
 });
 
 app.post('/api/admin/approve-order', isAdmin, async (req, res) => {
@@ -159,7 +157,7 @@ app.post('/api/admin/approve-order', isAdmin, async (req, res) => {
         const cart = JSON.parse(order.cart);
         for (const [productId, qty] of Object.entries(cart)) {
             const product = await Product.findByPk(productId);
-            if (!product || product.stock < qty) return res.status(400).json({ message: `Stock insuffisant.` });
+            if (!product || product.stock < qty) return res.status(400).json({ message: `Stock insuffisant pour ${product ? product.name : 'ID '+productId}` });
         }
 
         for (const [productId, qty] of Object.entries(cart)) {
@@ -168,7 +166,7 @@ app.post('/api/admin/approve-order', isAdmin, async (req, res) => {
         }
 
         await order.update({ status: 'Approuvée' });
-        res.json({ success: true });
+        res.json({ success: true, message: "Commande validée et stock déduit." });
     } catch (e) { res.status(500).json({ success: false }); }
 });
 
@@ -200,4 +198,4 @@ app.post('/api/arrivage', isAdmin, async (req, res) => {
     res.json({ ok: true });
 });
 
-app.listen(PORT, () => console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`🚀 Serveur actif sur le port ${PORT}`));
