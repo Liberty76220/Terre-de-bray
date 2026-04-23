@@ -1,0 +1,5 @@
+[
+  { "id": "tomate", "name": "Tomate bio", "price": 3.5 },
+  { "id": "carotte", "name": "Carotte bio", "price": 2.0 },
+  { "id": "courgette", "name": "Courgette bio", "price": 25 }
+]

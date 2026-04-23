@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin | Terre de Bray</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen flex">
+
+  <aside class="w-64 bg-green-800 text-white flex flex-col shadow-xl">
+    <div class="p-6 text-2xl font-bold border-b border-green-700 flex items-center">
+        <i class="fas fa-tools mr-3 text-green-400"></i> Admin
+    </div>
+    <nav class="flex-1 p-4 space-y-2">
+        <button onclick="showTab('arrivage')" class="w-full text-left p-3 rounded-lg hover:bg-green-700 transition flex items-center">
+            <i class="fas fa-truck mr-3"></i> Arrivage
+        </button>
+        <button onclick="showTab('produits')" class="w-full text-left p-3 rounded-lg hover:bg-green-700 transition flex items-center">
+            <i class="fas fa-apple-whole mr-3"></i> Stocks & Produits
+        </button>
+        <button onclick="showTab('commandes')" class="w-full text-left p-3 rounded-lg hover:bg-green-700 transition flex items-center">
+            <i class="fas fa-shopping-cart mr-3"></i> Commandes
+        </button>
+    </nav>
+    <div class="p-4 border-t border-green-700">
+        <a href="/" class="text-sm text-green-300 hover:text-white"><i class="fas fa-arrow-left mr-2"></i> Retour site</a>
+    </div>
+  </aside>
+
+  <main class="flex-1 p-8 overflow-y-auto">
+
+    <section id="tab-arrivage" class="tab-content">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Arrivage du jour</h2>
+        <div class="bg-white p-6 rounded-2xl shadow-sm">
+            <textarea id="arr-input" rows="8" class="w-full p-4 border rounded-xl focus:ring-2 focus:ring-green-500 outline-none mb-4" placeholder="Une ligne par produit..."></textarea>
+            <button onclick="saveArrivage()" class="bg-green-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-green-700">Sauvegarder</button>
+        </div>
+    </section>
+
+    <section id="tab-produits" class="tab-content hidden">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Stocks & Produits</h2>
+        <div class="bg-white p-6 rounded-2xl shadow-sm mb-8 border-t-4 border-blue-500">
+            <h3 class="font-bold mb-4">Nouveau produit</h3>
+            <form id="product-form" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 items-end">
+                <input type="text" name="name" placeholder="Nom" class="p-2 border rounded" required>
+                <input type="number" step="0.01" name="price" placeholder="Prix (€)" class="p-2 border rounded" required>
+                <input type="text" name="unit" placeholder="Unité" class="p-2 border rounded" value="kg">
+                <input type="file" name="image" class="text-xs">
+                <button type="submit" class="bg-blue-600 text-white p-2 rounded font-bold hover:bg-blue-700">Ajouter</button>
+            </form>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm overflow-hidden">
+            <table class="w-full text-left">
+                <thead class="bg-gray-50 border-b text-gray-600">
+                    <tr><th class="p-4">Produit</th><th class="p-4">Prix</th><th class="p-4 text-orange-600">Récolté (Stock)</th><th class="p-4 text-center">Actions</th></tr>
+                </thead>
+                <tbody id="admin-product-list"></tbody>
+            </table>
+        </div>
+    </section>
+
+    <section id="tab-commandes" class="tab-content hidden">
+        <h2 class="text-3xl font-bold mb-6 text-gray-800">Dernières Commandes</h2>
+        <div id="admin-orders-list" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
+    </section>
+
+  </main>
+
+  <script>
+    function showTab(id) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+        document.getElementById('tab-'+id).classList.remove('hidden');
+        if(id === 'commandes') loadOrders();
+        if(id === 'produits') loadAdminProducts();
+    }
+
+    async function saveArrivage() {
+        const txt = document.getElementById('arr-input').value.trim();
+        const arr = txt.split('\n').filter(s => s.trim() !== "");
+        await fetch('/api/arrivage', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ arrivage: arr }) });
+        alert("Mis à jour !");
+    }
+
+    async function loadAdminProducts() {
+        const res = await fetch('/api/products');
+        const products = await res.json();
+        document.getElementById('admin-product-list').innerHTML = products.map(p => `
+            <tr class="border-b hover:bg-gray-50">
+                <td class="p-4 font-medium">${p.name}</td>
+                <td class="p-4">${p.price.toFixed(2)}€ / ${p.unit}</td>
+                <td class="p-4">
+                    <input type="number" value="${p.stock || 0}" onchange="updateStock(${p.id}, this.value)" class="w-24 p-2 border rounded font-bold text-center bg-orange-50 focus:ring-orange-500">
+                </td>
+                <td class="p-4 text-center"><button onclick="deleteProduct(${p.id})" class="text-red-500 hover:scale-110"><i class="fas fa-trash"></i></button></td>
+            </tr>`).join('');
+    }
+
+    async function updateStock(id, newStock) {
+        await fetch('/api/admin/update-stock', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ id, stock: newStock }) });
+    }
+
+    async function deleteProduct(id) {
+        if(confirm("Supprimer ?")) { await fetch(`/api/admin/product/${id}`, { method: 'DELETE' }); loadAdminProducts(); }
+    }
+
+    async function loadOrders() {
+    const res = await fetch('/api/admin/orders');
+    const orders = await res.json();
+    const container = document.getElementById('admin-orders-list');
+    
+    container.innerHTML = orders.map(order => {
+        const isPending = order.status === 'En attente';
+        const statusStyle = isPending 
+            ? 'bg-orange-100 text-orange-800 border border-orange-200' 
+            : 'bg-green-100 text-green-800 border border-green-200';
+
+        return `
+            <div class="bg-white p-6 rounded-2xl shadow-sm border-l-4 ${isPending ? 'border-orange-400' : 'border-green-500'}">
+                <div class="flex justify-between mb-4">
+                    <div>
+                        <h4 class="font-bold text-lg">${order.userName}</h4>
+                        <p class="text-xs text-gray-500">${new Date(order.date).toLocaleString('fr-FR')}</p>
+                    </div>
+                    <span class="inline-flex items-center justify-center px-3 py-1 rounded-full text-xs font-bold uppercase min-w-[100px] h-7 ${statusStyle}">
+                        ${order.status}
+                    </span>
+                </div>
+                <div class="text-sm bg-gray-50 p-4 rounded-xl mb-4">
+                    <p class="text-xs font-bold text-gray-400 uppercase mb-2">Détail de la récolte :</p>
+                    ${order.cartDetails.map(item => `
+                        <div class="flex justify-between border-b border-gray-200 py-1 last:border-0">
+                            <span>• ${item.name}</span>
+                            <span class="font-bold text-green-700">x ${item.qty} ${item.unit}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                ${isPending ? `
+                    <button onclick="approveOrder(${order.id})" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition shadow-md">
+                        Valider & Déduire du stock
+                    </button>
+                ` : `
+                    <p class="text-center text-green-600 font-bold text-sm py-2">Commande validée ✅</p>
+                `}
+            </div>`;
+    }).join('');
+}
+
+    async function approveOrder(orderId) {
+        if (!confirm("Approuver et réduire le stock ?")) return;
+        const res = await fetch('/api/admin/approve-order', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ orderId }) });
+        const data = await res.json();
+        if(res.ok) { alert(data.message); loadOrders(); } else { alert(data.message); }
+    }
+
+    document.getElementById('product-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const res = await fetch('/api/admin/add-product', { method: 'POST', body: new FormData(e.target) });
+        if(res.ok) { loadAdminProducts(); e.target.reset(); }
+    };
+
+    showTab('arrivage');
+  </script>
+</body>
+</html>

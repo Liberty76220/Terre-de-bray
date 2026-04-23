@@ -1,0 +1,18 @@
+{
+  "name": "terre-de-bray",
+  "version": "1.0.0",
+  "description": "Petit site local pour vendre des légumes bio et afficher l'arrivage du jour.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "BERTIN Baptiste",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mongoose": "^9.5.0"
+  }
+}

@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Terre de Bray | Légumes Bio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans">
+
+  <nav class="bg-white shadow-md sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex justify-between items-center">
+      <h1 class="text-2xl font-bold text-green-600 flex items-center">
+        <i class="fas fa-leaf mr-2"></i> Terre de Bray
+      </h1>
+      <div class="flex items-center space-x-6">
+        <div id="user-status" class="text-sm font-medium">
+          <button onclick="toggleModal('auth-modal')" class="text-gray-600 hover:text-green-600">Connexion</button>
+        </div>
+        <div class="relative cursor-pointer" onclick="toggleCart()">
+          <i class="fas fa-shopping-basket text-2xl text-gray-700"></i>
+          <span id="cart-count" class="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">0</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <header class="bg-green-600 py-16 text-white text-center">
+    <h2 class="text-4xl font-extrabold mb-4">Légumes Bio & Locaux</h2>
+    <p class="text-lg opacity-90">Directement de notre terre à votre panier.</p>
+  </header>
+
+
+  <section class="py-16 bg-green-0">
+    <div class="max-container px-4">
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+            
+            <div>
+                <h2 class="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+                    <i class="fas fa-leaf text-green-600 mr-3"></i> Qui sommes-nous ?
+                </h2>
+                <p class="text-gray-600 leading-relaxed mb-6">
+                    Bienvenue à la <strong>Terre de Bray</strong>. Notre exploitation s'engage à vous fournir des produits locaux, frais et de saison, cultivés dans le respect de l'environnement. Nous croyons fermement aux circuits courts pour garantir une qualité optimale de la terre à votre assiette.
+                </p>
+                
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <i class="fas fa-map-marker-alt text-green-600 mt-1 mr-4"></i>
+                        <div>
+                            <p class="font-bold text-gray-800">Notre adresse</p>
+                            <p class="text-gray-600">address a entrée ici</p>
+                            <p class="text-sm text-green-700 font-semibold">Région : Normandie (Pays de Bray)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="h-96 rounded-2xl overflow-hidden shadow-lg border-4 border-white">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2587.346277635194!2d1.7022244760056418!3d49.57235675019906!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e73c723db1683b%3A0xe0a801948112d578!2s7%20Rue%20Principale%2C%2076220%20Doudeauville!5e0!3m2!1sfr!2sfr!4v1776960374220!5m2!1sfr!2sfr"
+                width="100%"
+                height="100%"
+                style="border:0;"
+                allowfullscreen=""
+                loading="lazy" 
+                referrerpolicy="no-referrer-when-downgrade">
+              </iframe>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+  <main class="max-w-6xl mx-auto px-4 py-10 space-y-16">
+    <section>
+      <div class="flex items-center mb-6">
+        <div class="h-1 w-12 bg-green-500 mr-4"></div>
+        <h3 class="text-2xl font-bold uppercase tracking-wider">Arrivage du jour</h3>
+      </div>
+      <div id="arrivage" class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500 grid grid-cols-2 md:grid-cols-4 gap-4">
+        Chargement...
+      </div>
+    </section>
+
+    <section>
+      <div class="flex items-center mb-8">
+        <div class="h-1 w-12 bg-green-500 mr-4"></div>
+        <h3 class="text-2xl font-bold uppercase tracking-wider">Notre Catalogue</h3>
+      </div>
+      <div id="products" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+        Chargement...
+      </div>
+    </section>
+  </main>
+
+  <div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[100]">
+    <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md relative">
+      <button onclick="toggleModal('auth-modal')" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+        <i class="fas fa-times text-xl"></i>
+      </button>
+      
+      <div id="login-section">
+        <h2 class="text-2xl font-bold mb-6 text-center text-green-700">Bon retour !</h2>
+        <form id="login-form" class="space-y-4">
+          <input type="email" id="login-email" placeholder="Email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required>
+          <input type="password" id="login-pass" placeholder="Mot de passe" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-green-500 outline-none" required>
+          <button type="submit" class="w-full bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700 transition">Se connecter</button>
+        </form>
+        <p class="mt-4 text-center text-sm">Pas de compte ? <button onclick="switchAuth(true)" class="text-green-600 font-bold">Inscrivez-vous</button></p>
+      </div>
+
+      <div id="register-section" class="hidden">
+        <h2 class="text-2xl font-bold mb-6 text-center text-blue-600">Créer un compte</h2>
+        <form id="register-form" class="space-y-4">
+          <input type="text" id="reg-name" placeholder="Nom complet" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+          <input type="email" id="reg-email" placeholder="Email" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+          <input type="password" id="reg-pass" placeholder="Mot de passe" class="w-full p-3 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+          <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg font-bold hover:bg-blue-700 transition">S'inscrire</button>
+        </form>
+        <p class="mt-4 text-center text-sm">Déjà un compte ? <button onclick="switchAuth(false)" class="text-blue-600 font-bold">Connectez-vous</button></p>
+      </div>
+    </div>
+  </div>
+
+  <div id="cart-sidebar" class="fixed inset-y-0 right-0 w-full md:w-96 bg-white shadow-2xl z-[150] transform translate-x-full transition-transform duration-300 flex flex-col">
+    <div class="p-6 border-b flex justify-between items-center bg-green-600 text-white">
+        <h2 class="text-xl font-bold"><i class="fas fa-shopping-basket mr-2"></i>Mon Panier</h2>
+        <button onclick="toggleCart()" class="hover:text-gray-200"><i class="fas fa-times text-2xl"></i></button>
+    </div>
+    <div id="cart-items" class="flex-1 overflow-y-auto p-6 space-y-4 text-sm">
+        <p class="text-gray-400 italic text-center py-10">Votre panier est vide...</p>
+    </div>
+    <div class="p-6 border-t bg-gray-50 space-y-4">
+        <div class="flex justify-between items-center text-xl font-bold">
+            <span>Total :</span>
+            <span id="cart-total-price">0.00 €</span>
+        </div>
+        <button onclick="checkout()" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold text-lg hover:bg-green-700 transition shadow-lg">
+            Confirmer la commande
+        </button>
+    </div>
+  </div>
+
+  <div id="cart-overlay" onclick="toggleCart()" class="hidden fixed inset-0 bg-black bg-opacity-50 z-[140]"></div>
+
+  <script>
+    let cart = {};
+    let currentUser = null;
+    let allProducts = [];
+
+    async function init() {
+        await checkUserStatus();
+        await loadProducts();
+        await loadArrivage();
+    }
+
+    function toggleModal(id) {
+        document.getElementById(id).classList.toggle('hidden');
+    }
+
+    function switchAuth(isRegister) {
+        document.getElementById('login-section').classList.toggle('hidden', isRegister);
+        document.getElementById('register-section').classList.toggle('hidden', !isRegister);
+    }
+
+    function toggleCart() {
+        document.getElementById('cart-sidebar').classList.toggle('translate-x-full');
+        document.getElementById('cart-overlay').classList.toggle('hidden');
+        renderCart();
+    }
+
+    async function checkUserStatus() {
+        const res = await fetch('/api/me');
+        const data = await res.json();
+        const statusEl = document.getElementById('user-status');
+        
+        if (data.loggedIn) {
+            currentUser = data;
+            statusEl.innerHTML = `
+                <span class="mr-4 text-gray-700">Bonjour, <strong>${data.name}</strong></span>
+                ${data.isAdmin ? '<a href="/admin.html" class="mr-4 text-blue-600 hover:underline">Admin</a>' : ''}
+                <button onclick="logout()" class="text-red-500 hover:underline">Déconnexion</button>
+            `;
+        } else {
+            currentUser = null;
+            statusEl.innerHTML = `<button onclick="toggleModal('auth-modal')" class="bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition">Connexion</button>`;
+        }
+    }
+
+    async function loadProducts() {
+        const res = await fetch('/api/products');
+        allProducts = await res.json();
+        const container = document.getElementById('products');
+        container.innerHTML = allProducts.map(p => `
+            <div class="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-shadow duration-300 group">
+                <div class="h-48 overflow-hidden bg-gray-200">
+                    <img src="${p.image || 'https://via.placeholder.com/300x200?text=Legume'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="text-xl font-bold text-gray-800">${p.name}</h4>
+                        <span class="text-green-600 font-bold text-lg">${p.price.toFixed(2)}€</span>
+                    </div>
+                    <p class="text-gray-500 text-sm mb-6">Prix au ${p.unit || 'kg'}</p>
+                    <button onclick="addToCart('${p.id}')" class="w-full bg-gray-100 hover:bg-green-600 hover:text-white py-3 rounded-xl transition-colors font-semibold">Ajouter au panier</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    async function loadArrivage() {
+        const res = await fetch('/api/arrivage');
+        const items = await res.json();
+        const container = document.getElementById('arrivage');
+        if (!items || items.length === 0) {
+            container.innerHTML = "<p class='text-gray-400 italic'>Aucun arrivage aujourd'hui</p>";
+            return;
+        }
+        container.innerHTML = items.map(item => `
+            <div class="flex items-center space-x-2 text-green-700 font-medium">
+                <i class="fas fa-check-circle"></i>
+                <span>${item}</span>
+            </div>
+        `).join('');
+    }
+
+    function addToCart(id) {
+        if (!currentUser) {
+            alert("Veuillez vous connecter pour remplir votre panier !");
+            toggleModal('auth-modal');
+            return;
+        }
+        cart[id] = (cart[id] || 0) + 1;
+        updateCartBadge();
+    }
+
+    function updateCartBadge() {
+        const count = Object.values(cart).reduce((a, b) => a + b, 0);
+        document.getElementById('cart-count').textContent = count;
+    }
+
+    function renderCart() {
+        const container = document.getElementById('cart-items');
+        const totalPriceEl = document.getElementById('cart-total-price');
+        let total = 0;
+
+        if (Object.keys(cart).length === 0) {
+            container.innerHTML = '<p class="text-gray-400 italic text-center py-10">Votre panier est vide...</p>';
+            totalPriceEl.textContent = "0.00 €";
+            return;
+        }
+
+        container.innerHTML = Object.entries(cart).map(([id, qty]) => {
+            const product = allProducts.find(p => p.id == id);
+            if (!product) return '';
+            total += product.price * qty;
+            return `
+                <div class="flex items-center justify-between bg-gray-50 p-3 rounded-xl border border-gray-100">
+                    <div>
+                        <h4 class="font-bold text-gray-800">${product.name}</h4>
+                        <p class="text-xs text-green-600">${product.price.toFixed(2)} € / ${product.unit}</p>
+                    </div>
+                    <div class="flex items-center space-x-3">
+                        <button onclick="updateQty('${id}', -1)" class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full hover:bg-red-500 hover:text-white">-</button>
+                        <span class="font-bold text-lg">${qty}</span>
+                        <button onclick="updateQty('${id}', 1)" class="w-7 h-7 flex items-center justify-center bg-gray-200 rounded-full hover:bg-green-500 hover:text-white">+</button>
+                    </div>
+                </div>
+            `;
+        }).join('');
+        totalPriceEl.textContent = total.toFixed(2) + " €";
+    }
+
+    function updateQty(id, change) {
+        cart[id] += change;
+        if (cart[id] <= 0) delete cart[id];
+        updateCartBadge();
+        renderCart();
+    }
+
+    async function checkout() {
+        if (Object.keys(cart).length === 0) return alert("Le panier est vide.");
+        const res = await fetch('/api/order', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ cart })
+        });
+        if (res.ok) {
+            alert("Commande envoyée !");
+            cart = {};
+            updateCartBadge();
+            toggleCart();
+        }
+    }
+
+    // AUTH SCRIPTS
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const res = await fetch('/api/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                name: document.getElementById('reg-name').value,
+                email: document.getElementById('reg-email').value,
+                password: document.getElementById('reg-pass').value
+            })
+        });
+        if (res.ok) { alert("Compte créé !"); switchAuth(false); }
+        else { const d = await res.json(); alert(d.message); }
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: document.getElementById('login-email').value,
+                password: document.getElementById('login-pass').value
+            })
+        });
+        if (res.ok) location.reload();
+        else alert("Erreur d'identifiants");
+    });
+
+    async function logout() {
+        await fetch('/api/logout');
+        location.reload();
+    }
+
+    init();
+  </script>
+</body>
+</html>
